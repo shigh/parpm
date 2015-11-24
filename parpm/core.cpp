@@ -1,5 +1,5 @@
 
-#include "par_core.hpp"
+#include "core.hpp"
 
 void move_par(const int N, const double dt,
               double *zp, const double *vz,

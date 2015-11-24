@@ -1,7 +1,6 @@
 
 #include "fftwmpi.hpp"
 #include "problem.hpp"
-#include "hypre.hpp"
 
 void example_3d() {
 
