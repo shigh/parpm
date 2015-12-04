@@ -22,15 +22,15 @@ int pic_fft(int argc, char* argv[]) {
   const FLOAT Ly = 2*M_PI;
   const FLOAT Lx = 2*M_PI;
 
-  const ptrdiff_t N0 = 100;
-  const ptrdiff_t N1 = 100;
-  const ptrdiff_t N2 = 100;
+  const ptrdiff_t N0 = 128;
+  const ptrdiff_t N1 = 128;
+  const ptrdiff_t N2 = 128;
 
   const FLOAT dz = Lz/N0;
   const FLOAT dy = Ly/N1;
   const FLOAT dx = Lx/N2;
   const FLOAT V  = dz*dy*dx;
-  const FLOAT Vi = dz*dy*dx;
+  const FLOAT Vi = 1.0/dz*dy*dx;
 
   // Build solver and get local params
   FFTWPoisson3DMPI solver(N0, Lz, N1, Ly, N2, Lx);
@@ -261,6 +261,9 @@ int pic_fft(int argc, char* argv[]) {
         particles.xp_.at(ipart) -= Lxl;
       if(particles.yp_.at(ipart)>=Lyl)
         particles.yp_.at(ipart) -= Lyl;
+
+      // if(!(particles.zp_.at(ipart)<Lzl))
+      //   std::cout << rank << ' ' << particles.zp_.at(ipart) << ' ' << Lzl << std::endl;
 
       assert(particles.xp_.at(ipart)>=0 && particles.xp_.at(ipart)<Lxl);
       assert(particles.yp_.at(ipart)>=0 && particles.yp_.at(ipart)<Lyl);
