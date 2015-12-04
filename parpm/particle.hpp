@@ -20,7 +20,7 @@ struct Particle {
 
 class ParticleList {
 
-private:
+public:
 
   std::vector<FLOAT> xp_;
   std::vector<FLOAT> yp_;
@@ -34,12 +34,10 @@ private:
 
   int n_parts_;
 
-public:
-
-  Particle get_particle(int i) const;
-  void AddParticle(Particle particle);
-  void AddParticle(Particle* particles, int n);
-  void RemoveParticle(int i);
-  void RemoveParticle(std::vector<int> particles);
+  // Particle get_particle(int i) const;
+  // void AddParticle(Particle particle);
+  // void AddParticle(Particle* particles, int n);
+  // void RemoveParticle(int i);
+  void RemoveParticles(std::vector<int> particles);
 
 };
