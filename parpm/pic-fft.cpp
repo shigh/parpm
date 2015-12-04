@@ -34,6 +34,8 @@ int pic_fft(int argc, char* argv[]) {
   const int ny = solver.get_ny();
   const int z0 = solver.get_z0();
   // Local domain length
+  const FLOAT Lxl = nx*dx;
+  const FLOAT Lyl = ny*dy;
   const FLOAT Lzl = nz*dz;
 
   // Field arrays
@@ -60,8 +62,37 @@ int pic_fft(int argc, char* argv[]) {
   std::vector<FLOAT> send_parts_left;
   std::vector<FLOAT> recv_parts_left;
 
-  // Construct particles
-  ParticleList particles;
+  // Construct init particles
+  ParticleList particles(ppc*ppc*ppc*nx*ny*nz);
+  {
+    const FLOAT pdx = dx/(ppc+1);
+    const FLOAT pdy = dy/(ppc+1);
+    const FLOAT pdz = dz/(ppc+1);
+    FLOAT x0, y0, z0;
+    for(int iz=0; iz<nz; ++iz)
+      for(int iy=0; iy<ny; ++iy)
+        for(int ix=0; ix<nx; ++ix) {
+          x0 = ix*dx;
+          y0 = iy*dy;
+          z0 = iz*dz;
+          for(int pz=0; pz<ppc; ++pz)
+            for(int py=0; py<ppc; ++py)
+              for(int px=0; px<ppc; ++px) {
+                particles.xp_.push_back(x0+px*pdx);
+                particles.yp_.push_back(y0+py*pdy);
+                particles.zp_.push_back(z0+pz*pdz);
+
+                // TODO: Init particle velocities
+                particles.vx_.push_back(1.0);
+                particles.vy_.push_back(1.0);
+                particles.vz_.push_back(1.0);
+
+                particles.q_.push_back(1.0);
+              }
+
+        }
+
+  }
 
   // Main time stepping loop
   for(int it=0; it<nt; ++it) {
