@@ -1,6 +1,10 @@
 
 #pragma once
 
+#include <algorithm>
+#include <vector>
+#include <cassert>
+
 #include "types.hpp"
 
 struct Particle {
@@ -32,12 +36,13 @@ public:
 
   std::vector<FLOAT> q_;
 
-  int n_parts_;
-
   // Particle get_particle(int i) const;
   // void AddParticle(Particle particle);
   // void AddParticle(Particle* particles, int n);
   // void RemoveParticle(int i);
   void RemoveParticles(std::vector<int> particles);
+
+  ParticleList() {};
+  ParticleList(int n_resv);
 
 };

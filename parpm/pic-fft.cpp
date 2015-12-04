@@ -4,6 +4,7 @@
 
 #include "types.hpp"
 #include "fftwmpi.hpp"
+#include "particle.hpp"
 
 int pic_fft(int argc, char* argv[]) {
 
@@ -60,6 +61,7 @@ int pic_fft(int argc, char* argv[]) {
   std::vector<FLOAT> recv_parts_left;
 
   // Construct particles
+  ParticleList particles;
 
   // Main time stepping loop
   for(int it=0; it<nt; ++it) {

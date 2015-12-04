@@ -7,7 +7,7 @@ CXXDEFS     = -DHAVE_CONFIG_H
 LDLIBS  = -L$(HOME)/local/lib  -lfftw3_mpi -lfftw3 -lm
 
 DEPS = fftwmpi.hpp core.hpp grid.hpp interp.hpp particle.hpp types.hpp
-OBJS = fftwmpi.o core.o interp.o
+OBJS = fftwmpi.o core.o interp.o particle.o
 
 pic-fft: pic-fft.o $(OBJS)
 	$(CXX)  $(CXXFLAGS) -o $@ $^ $(LDLIBS)
