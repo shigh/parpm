@@ -7,6 +7,8 @@
 
 #include "types.hpp"
 
+const int partFields = 7;
+
 struct Particle {
 
   FLOAT x;
@@ -44,5 +46,7 @@ public:
 
   ParticleList() {};
   ParticleList(int n_resv);
+
+  int size() { return xp_.size(); }
 
 };

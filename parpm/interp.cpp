@@ -29,6 +29,12 @@ void interp_cic_par(const int nz, const int ny, const int nx, const double *vals
       y1 = (int)((y0+1)%ny);
       z0 = (int)(floor(zis));
       z1 = (int)((z0+1)%nz);
+      assert(z0<nz && z1<nz &&
+             y0<ny && y1<ny &&
+             x0<nx && x1<nx &&
+             z0>=0 && z1>=0 &&
+             y0>=0 && y1>=0 &&
+             x0>=0 && x1>=0);
       zd = (zis-z0);
       yd = (yis-y0);
       xd = (xis-x0);
@@ -73,6 +79,12 @@ void weight_cic_par(const int nz, const int ny, const int nx, double *grid,
       y1 = (int)((y0+1)%ny);
       x0 = (int)(floor(xis));
       x1 = (int)((x0+1)%nx);
+      assert(z0<nz && z1<nz &&
+             y0<ny && y1<ny &&
+             x0<nx && x1<nx &&
+             z0>=0 && z1>=0 &&
+             y0>=0 && y1>=0 &&
+             x0>=0 && x1>=0);
       zd = (zis-z0);
       yd = (yis-y0);
       xd = (xis-x0);
