@@ -111,24 +111,40 @@ int pic_fft(int argc, char* argv[]) {
   // Diagnostic vectors
   std::vector<int> vn_send_r(nt,0), vn_send_l(nt,0);
   std::vector<int> vn_recv_r(nt,0), vn_recv_l(nt,0);
+  std::vector<FLOAT> t_field_solve(nt,0), t_weight(nt,0), t_interp(nt,0);
+  std::vector<FLOAT> t_calc_E(nt,0), t_comm(nt,0), t_loop(nt,0);
+  std::vector<FLOAT> t_accel(nt,0), t_move(nt,0);
+  FLOAT t_start, t_end;
+  FLOAT t_loop_start, t_loop_end;
 
   // Main time stepping loop
+  MPI_Barrier(MPI_COMM_WORLD);
   for(int it=0; it<nt; ++it) {
 
+    t_loop_start = MPI_Wtime();
+
     // Weight particles to mesh
+    t_start = MPI_Wtime();
     weight_cic_par(nz, ny, nx, &phi[0], particles.size(),
                    &particles.zp_[0], dz,
                    &particles.yp_[0], dy,
                    &particles.xp_[0], dx,
                    &particles.q_[0]);
+    t_end = MPI_Wtime();
+    t_weight.at(it) = t_end-t_start;
 
     // Solve for phi
+    t_start = MPI_Wtime();
     for(int i=0; i<phi.size(); ++i)
       phi.at(i) *= Vi;
 
     solver.solve(&phi[0]);
+    t_end = MPI_Wtime();
+    t_field_solve.at(it) = t_end-t_start;
+
 
     // Calc Exyz at grid points
+    t_start = MPI_Wtime();
     for(int iz=1; iz<nz-1; ++iz)
       for(int iy=1; iy<ny-1; ++iy)
         for(int ix=1; ix<nx-1; ++ix) {
@@ -137,8 +153,11 @@ int pic_fft(int argc, char* argv[]) {
           Ey.at(ind) = (phi.at(ind+nx)-phi.at(ind-nx))/(2*dy);
           Ez.at(ind) = (phi.at(ind+nx*ny)-phi.at(ind-nx*ny))/(2*dz);
         }
+    t_end = MPI_Wtime();
+    t_calc_E.at(it) = t_end-t_start;
 
     // Weight Exyz to particles
+    t_start = MPI_Wtime();
     Exp.resize(particles.size());
     Eyp.resize(particles.size());
     Ezp.resize(particles.size());
@@ -161,19 +180,29 @@ int pic_fft(int argc, char* argv[]) {
                    &particles.yp_[0], dy,
                    &particles.xp_[0], dx,
                    &Ezp[0]);
+    t_end = MPI_Wtime();
+    t_interp.at(it) = t_end-t_start;
 
     // Accel and move
+    t_start = MPI_Wtime();
     accel_par(particles.size(), dt, &particles.q_[0],
               &Ezp[0], &particles.vz_[0],
               &Eyp[0], &particles.vy_[0],
               &Exp[0], &particles.vx_[0]);
+    t_end = MPI_Wtime();
+    t_accel.at(it) = t_end-t_start;
 
+
+    t_start = MPI_Wtime();
     move_par(particles.size(), dt,
              &particles.zp_[0], &particles.vz_[0],
              &particles.yp_[0], &particles.vy_[0],
              &particles.xp_[0], &particles.vx_[0]);
+    t_end = MPI_Wtime();
+    t_move.at(it) = t_end-t_start;
 
     // Find particles to send
+    t_start = MPI_Wtime();
     std::vector<int> to_send_right, to_send_left;
     for(int ipart=0; ipart<particles.size(); ++ipart)
       if(particles.zp_.at(ipart)>=Lzl)
@@ -282,6 +311,10 @@ int pic_fft(int argc, char* argv[]) {
 
     }
 
+    t_end = MPI_Wtime();
+    t_comm.at(it) = t_end-t_start;
+
+
     // Diagnostics
     {
       // Check total particle counts
@@ -299,6 +332,12 @@ int pic_fft(int argc, char* argv[]) {
       vn_recv_l.at(it) = n_recv_l;
 
     }
+
+    t_loop_end = MPI_Wtime();
+    t_loop.at(it) = t_loop_end-t_loop_start;
+
+    if(rank==0)
+      std::cout << it+1 << ' ' << t_loop.at(it) << std::endl;;
 
   }
 
