@@ -348,6 +348,7 @@ int pic_fft(int argc, char* argv[]) {
     odiag.open("./diag.dat");
     // Write header
     odiag << "rank" << ' ' << "iter" << ' '
+          << "ppc" << ' ' << "nt" << ' '
           << "t_loop" << ' '
           << "t_field_solve" << ' '
           << "t_weight" << ' '
@@ -356,20 +357,52 @@ int pic_fft(int argc, char* argv[]) {
           << "t_comm" << ' '
           << "t_accel" << ' '
           << "t_move" << std::endl;
-      
+    for(int irank=0; irank<size; ++irank) {
 
-    for(int i=0; i<nt; ++i) {
-      odiag << 0 << ' ' << i << ' '
-            << t_loop.at(i) << ' '
-            << t_field_solve.at(i) << ' '
-            << t_weight.at(i) << ' '
-            << t_interp.at(i) << ' '
-            << t_calc_E.at(i) << ' '
-            << t_comm.at(i) << ' '
-            << t_accel.at(i) << ' '
-            << t_move.at(i) << std::endl;
+      if(irank>0) {
+        MPI_Recv(&t_loop[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_field_solve[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_weight[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_interp[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_calc_E[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_comm[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_accel[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_move[0], nt, MPI_DOUBLE, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      }
+
+      for(int i=0; i<nt; ++i) {
+        odiag << irank << ' ' << i+1 << ' '
+              << ppc << ' ' << nt << ' '
+              << t_loop.at(i) << ' '
+              << t_field_solve.at(i) << ' '
+              << t_weight.at(i) << ' '
+              << t_interp.at(i) << ' '
+              << t_calc_E.at(i) << ' '
+              << t_comm.at(i) << ' '
+              << t_accel.at(i) << ' '
+              << t_move.at(i) << std::endl;
+      }
+
     }
     odiag.close();
+  }
+  else {
+    MPI_Send(&t_loop[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&t_field_solve[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&t_weight[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&t_interp[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&t_calc_E[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&t_comm[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&t_accel[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&t_move[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
   }
 
 }
