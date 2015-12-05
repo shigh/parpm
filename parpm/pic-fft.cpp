@@ -71,7 +71,7 @@ int pic_fft(int argc, char* argv[]) {
     const FLOAT pdx = dx/(ppc+1);
     const FLOAT pdy = dy/(ppc+1);
     const FLOAT pdz = dz/(ppc+1);
-    FLOAT xl, yl, zl;
+    FLOAT xl, yl, zl, v;
     for(int iz=0; iz<nz; ++iz)
       for(int iy=0; iy<ny; ++iy)
         for(int ix=0; ix<nx; ++ix) {
@@ -85,11 +85,12 @@ int pic_fft(int argc, char* argv[]) {
                 particles.yp_.push_back(yl+py*pdy);
                 particles.zp_.push_back(zl+pz*pdz);
 
-                // TODO: Init particle velocities
-                particles.vx_.push_back(1.0);
-                particles.vy_.push_back(1.0);
-                particles.vz_.push_back(1.0);
-
+                v = (((FLOAT)rand())/RAND_MAX-.5)*2.0;
+                particles.vx_.push_back(v);
+                v = (((FLOAT)rand())/RAND_MAX-.5)*2.0;
+                particles.vy_.push_back(v);
+                v = (((FLOAT)rand())/RAND_MAX-.5)*2.0;
+                particles.vz_.push_back(v);
                 particles.q_.push_back(1.0);
               }
 
@@ -234,9 +235,9 @@ int pic_fft(int argc, char* argv[]) {
       send_parts_left.at(i*partFields+0) = particles.xp_.at(ipart);
       send_parts_left.at(i*partFields+1) = particles.yp_.at(ipart);
       if(rank==0)
-        send_parts_left.at(i*partFields+2) = Lz-particles.zp_.at(ipart);
+        send_parts_left.at(i*partFields+2) = particles.zp_.at(ipart)+Lz;
       else
-        send_parts_left.at(i*partFields+2) = particles.zp_.at(ipart)-Lz0;
+        send_parts_left.at(i*partFields+2) = particles.zp_.at(ipart)+Lz0;
       send_parts_left.at(i*partFields+3) = particles.vx_.at(ipart);
       send_parts_left.at(i*partFields+4) = particles.vy_.at(ipart);
       send_parts_left.at(i*partFields+5) = particles.vz_.at(ipart);
