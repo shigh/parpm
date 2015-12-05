@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <cassert>
+#include <fstream>
 # include "mpi.h"
 
 #include "types.hpp"
@@ -339,6 +340,36 @@ int pic_fft(int argc, char* argv[]) {
     if(rank==0)
       std::cout << it+1 << ' ' << t_loop.at(it) << std::endl;;
 
+  }
+
+  // Save diagnostic results
+  if(rank==0) {
+    std::ofstream odiag;
+    odiag.open("./diag.dat");
+    // Write header
+    odiag << "rank" << ' ' << "iter" << ' '
+          << "t_loop" << ' '
+          << "t_field_solve" << ' '
+          << "t_weight" << ' '
+          << "t_interp" << ' '
+          << "t_calc_E" << ' '
+          << "t_comm" << ' '
+          << "t_accel" << ' '
+          << "t_move" << std::endl;
+      
+
+    for(int i=0; i<nt; ++i) {
+      odiag << 0 << ' ' << i << ' '
+            << t_loop.at(i) << ' '
+            << t_field_solve.at(i) << ' '
+            << t_weight.at(i) << ' '
+            << t_interp.at(i) << ' '
+            << t_calc_E.at(i) << ' '
+            << t_comm.at(i) << ' '
+            << t_accel.at(i) << ' '
+            << t_move.at(i) << std::endl;
+    }
+    odiag.close();
   }
 
 }
