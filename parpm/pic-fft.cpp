@@ -96,6 +96,15 @@ int pic_fft(int argc, char* argv[]) {
 
   }
 
+  // Get global initial number of particles
+  int init_n_parts;
+  {
+    int n_parts;
+    n_parts = particles.size();
+    MPI_Reduce(&n_parts, &init_n_parts, 1, MPI_INT, MPI_SUM, 0,
+               MPI_COMM_WORLD);
+  }
+
   // Main time stepping loop
   int ind;
   std::vector<FLOAT> Exp, Eyp, Ezp;
@@ -262,9 +271,6 @@ int pic_fft(int argc, char* argv[]) {
       if(particles.yp_.at(ipart)>=Lyl)
         particles.yp_.at(ipart) -= Lyl;
 
-      // if(!(particles.zp_.at(ipart)<Lzl))
-      //   std::cout << rank << ' ' << particles.zp_.at(ipart) << ' ' << Lzl << std::endl;
-
       assert(particles.xp_.at(ipart)>=0 && particles.xp_.at(ipart)<Lxl);
       assert(particles.yp_.at(ipart)>=0 && particles.yp_.at(ipart)<Lyl);
       assert(particles.zp_.at(ipart)>=0 && particles.zp_.at(ipart)<Lzl);
@@ -272,6 +278,16 @@ int pic_fft(int argc, char* argv[]) {
     }
 
     // Diagnostics
+    {
+      // Check total particle counts
+      int part_sum, n_parts;
+      n_parts = particles.size();
+      MPI_Reduce(&n_parts, &part_sum, 1, MPI_INT, MPI_SUM, 0,
+                 MPI_COMM_WORLD);
+      if(rank==0)
+        assert(part_sum==init_n_parts);
+
+    }
 
   }
 
