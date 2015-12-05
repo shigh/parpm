@@ -13,7 +13,7 @@
 int pic_fft(int argc, char* argv[]) {
 
   // Temp test params
-  const int nt  = 1;
+  const int nt  = 20;
   const int ppc = 1;
   const FLOAT dt = 0.1;
 
@@ -105,10 +105,15 @@ int pic_fft(int argc, char* argv[]) {
                MPI_COMM_WORLD);
   }
 
-  // Main time stepping loop
+
   int ind;
   std::vector<FLOAT> Exp, Eyp, Ezp;
-  for(int it=0; it<20; ++it) {
+  // Diagnostic vectors
+  std::vector<int> vn_send_r(nt,0), vn_send_l(nt,0);
+  std::vector<int> vn_recv_r(nt,0), vn_recv_l(nt,0);
+
+  // Main time stepping loop
+  for(int it=0; it<nt; ++it) {
 
     // Weight particles to mesh
     weight_cic_par(nz, ny, nx, &phi[0], particles.size(),
@@ -286,6 +291,12 @@ int pic_fft(int argc, char* argv[]) {
                  MPI_COMM_WORLD);
       if(rank==0)
         assert(part_sum==init_n_parts);
+
+      // Save comm counts
+      vn_send_r.at(it) = n_send_r;
+      vn_send_l.at(it) = n_send_l;
+      vn_recv_r.at(it) = n_recv_r;
+      vn_recv_l.at(it) = n_recv_l;
 
     }
 
