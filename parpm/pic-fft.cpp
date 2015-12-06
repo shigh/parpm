@@ -14,18 +14,20 @@
 int pic_fft(int argc, char* argv[]) {
 
   // Temp test params
-  const int nt  = 20;
-  const int ppc = 1;
+
+  assert(argc==4);
+  const int nt       = atoi(argv[1]);
+  const ptrdiff_t N0 = atoi(argv[2]);
+  const ptrdiff_t N1 = N0;
+  const ptrdiff_t N2 = N0;
+  const int ppc      = atoi(argv[3]);
+
   const FLOAT dt = 0.1;
 
   // Global problem setup
   const FLOAT Lz = 2*M_PI;
   const FLOAT Ly = 2*M_PI;
   const FLOAT Lx = 2*M_PI;
-
-  const ptrdiff_t N0 = 128;
-  const ptrdiff_t N1 = 128;
-  const ptrdiff_t N2 = 128;
 
   const FLOAT dz = Lz/N0;
   const FLOAT dy = Ly/N1;
