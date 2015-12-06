@@ -112,6 +112,11 @@ int pic_fft(int argc, char* argv[]) {
 
   int ind;
   std::vector<FLOAT> Exp, Eyp, Ezp;
+  std::vector<FLOAT> phi_send_r(ny*nx, 0);
+  std::vector<FLOAT> phi_send_l(ny*nx, 0);
+  std::vector<FLOAT> phi_recv_r(ny*nx, 0);
+  std::vector<FLOAT> phi_recv_l(ny*nx, 0);
+  
   // Diagnostic vectors
   std::vector<int> vn_send_r(nt,0), vn_send_l(nt,0);
   std::vector<int> vn_recv_r(nt,0), vn_recv_l(nt,0);
@@ -150,6 +155,14 @@ int pic_fft(int argc, char* argv[]) {
 
     // Calc Exyz at grid points
     t_start = MPI_Wtime();
+    MPI_Request comm_phi[2];
+    for(int i=0; i<ny*nx; ++i) {
+      phi_send_r.at(i) = phi.at(ny*nx*(nz-1)+i);
+      phi_send_l.at(i) = phi.at(i);
+    }
+    MPI_Isend(&phi_send_r[0], ny*nx, MPI_DOUBLE, right, 0, MPI_COMM_WORLD, &comm_phi[0]);
+    MPI_Isend(&phi_send_l[0], ny*nx, MPI_DOUBLE, left, 1, MPI_COMM_WORLD, &comm_phi[1]);
+
     for(int iz=1; iz<nz-1; ++iz)
       for(int iy=1; iy<ny-1; ++iy)
         for(int ix=1; ix<nx-1; ++ix) {
@@ -158,6 +171,20 @@ int pic_fft(int argc, char* argv[]) {
           Ey.at(ind) = (phi.at(ind+nx)-phi.at(ind-nx))/(2*dy);
           Ez.at(ind) = (phi.at(ind+nx*ny)-phi.at(ind-nx*ny))/(2*dz);
         }
+
+    MPI_Recv(&phi_recv_l[0], ny*nx, MPI_DOUBLE, left, 0,
+             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&phi_recv_r[0], ny*nx, MPI_DOUBLE, right, 1,
+             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    for(int iy=1; iy<ny-1; ++iy)
+      for(int ix=1; ix<nx-1; ++ix) {
+        ind = (nz-2)*ny*nx;
+        Ez.at(ind+iy*nx+ix) = (phi.at(ind+nx*ny)-phi.at(ind-nx*ny))/(2*dz);
+        ind = nx*ny;
+        Ez.at(ind+iy*nx+ix) = (phi.at(ind+nx*ny)-phi.at(ind-nx*ny))/(2*dz);
+      }
+    MPI_Waitall(2, comm_phi, MPI_STATUS_IGNORE);
     t_end = MPI_Wtime();
     t_calc_E.at(it) = t_end-t_start;
 
