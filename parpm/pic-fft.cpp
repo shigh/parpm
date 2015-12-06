@@ -118,6 +118,7 @@ int pic_fft(int argc, char* argv[]) {
   std::vector<FLOAT> t_field_solve(nt,0), t_weight(nt,0), t_interp(nt,0);
   std::vector<FLOAT> t_calc_E(nt,0), t_comm(nt,0), t_loop(nt,0);
   std::vector<FLOAT> t_accel(nt,0), t_move(nt,0);
+  std::vector<int> n_parts_local(nt,0);
   FLOAT t_start, t_end;
   FLOAT t_loop_start, t_loop_end;
 
@@ -324,6 +325,7 @@ int pic_fft(int argc, char* argv[]) {
       // Check total particle counts
       int part_sum, n_parts;
       n_parts = particles.size();
+      n_parts_local.at(it) = n_parts;
       MPI_Reduce(&n_parts, &part_sum, 1, MPI_INT, MPI_SUM, 0,
                  MPI_COMM_WORLD);
       if(rank==0)
@@ -351,6 +353,7 @@ int pic_fft(int argc, char* argv[]) {
     odiag.open("./diag.dat");
     // Write header
     odiag << "rank" << ' ' << "iter" << ' '
+          << "size" << ' '
           << "ppc" << ' ' << "nt" << ' '
           << "t_loop" << ' '
           << "t_field_solve" << ' '
@@ -359,7 +362,10 @@ int pic_fft(int argc, char* argv[]) {
           << "t_calc_E" << ' '
           << "t_comm" << ' '
           << "t_accel" << ' '
-          << "t_move" << std::endl;
+          << "t_move" << ' '
+          << "n_local" << ' '
+          << "n_sent" << std::endl;
+
     for(int irank=0; irank<size; ++irank) {
 
       if(irank>0) {
@@ -379,10 +385,17 @@ int pic_fft(int argc, char* argv[]) {
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(&t_move[0], nt, MPI_DOUBLE, irank, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&n_parts_local[0], nt, MPI_INT, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&vn_send_l[0], nt, MPI_INT, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&vn_send_r[0], nt, MPI_INT, irank, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 
       for(int i=0; i<nt; ++i) {
-        odiag << irank << ' ' << i+1 << ' '
+        odiag << irank << ' '
+              << i+1 << ' '<< size << ' '
               << ppc << ' ' << nt << ' '
               << t_loop.at(i) << ' '
               << t_field_solve.at(i) << ' '
@@ -391,7 +404,9 @@ int pic_fft(int argc, char* argv[]) {
               << t_calc_E.at(i) << ' '
               << t_comm.at(i) << ' '
               << t_accel.at(i) << ' '
-              << t_move.at(i) << std::endl;
+              << t_move.at(i) << ' '
+              << n_parts_local.at(i) << ' '
+              << vn_send_r.at(i)+vn_send_l.at(i) << std::endl;
       }
 
     }
@@ -406,6 +421,9 @@ int pic_fft(int argc, char* argv[]) {
     MPI_Send(&t_comm[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     MPI_Send(&t_accel[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     MPI_Send(&t_move[0], nt, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&n_parts_local[0], nt, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&vn_send_l[0], nt, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    MPI_Send(&vn_send_r[0], nt, MPI_INT, 0, 0, MPI_COMM_WORLD);
   }
 
 }
