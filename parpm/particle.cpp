@@ -21,6 +21,9 @@ void ParticleList::RemoveParticles(std::vector<int> particles) {
   int last = xp_.size()-1;  
   for(int i=particles.size()-1; i>=0; --i) {
     ipart = particles.at(i);
+    assert(ipart>=0);
+    assert(ipart<size());
+    assert(last>=0);
     if(ipart!=last) {
       xp_.at(ipart) = xp_.at(last);
       yp_.at(ipart) = yp_.at(last);

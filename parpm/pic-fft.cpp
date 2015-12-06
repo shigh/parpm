@@ -132,7 +132,6 @@ int pic_fft(int argc, char* argv[]) {
   for(int it=0; it<nt; ++it) {
 
     t_loop_start = MPI_Wtime();
-
     // Weight particles to mesh
     t_start = MPI_Wtime();
     weight_cic_par(nz, ny, nx, &phi[0], particles.size(),
@@ -302,8 +301,11 @@ int pic_fft(int argc, char* argv[]) {
     MPI_Waitall(2, send_parts, MPI_STATUS_IGNORE);
 
     // Update data structures
-    particles.RemoveParticles(to_send_right);
-    particles.RemoveParticles(to_send_left);
+    std::vector<int> to_remove = to_send_left;
+    for(int i=0; i<to_send_right.size(); ++i)
+      to_remove.push_back(to_send_right.at(i));
+    particles.RemoveParticles(to_remove);
+    
     for(int ipart=0; ipart<particles.size(); ++ipart)
       assert(particles.zp_.at(ipart)>=0 && particles.zp_.at(ipart)<Lzl);
 
