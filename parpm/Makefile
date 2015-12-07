@@ -1,6 +1,6 @@
 
 CXX         = mpic++
-CXXFLAGS    = -g -fPIC
+CXXFLAGS    = -g -fPIC -fopenmp
 CXXINCLUDES = -I$(HOME)/local/include
 CXXDEFS     = -DHAVE_CONFIG_H
 
