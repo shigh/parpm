@@ -3,7 +3,8 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
-# include "mpi.h"
+#include "mpi.h"
+#include "omp.h"
 
 #include "types.hpp"
 #include "fftwmpi.hpp"
@@ -22,6 +23,12 @@ int pic_fft(int argc, char* argv[]) {
   const ptrdiff_t N2 = N0;
   const int ppc      = atoi(argv[3]);
 
+  int _n_threads;
+#pragma omp parallel
+  {
+    _n_threads  = omp_get_num_threads();
+  }
+  const int n_threads = _n_threads;
   const FLOAT dt = 0.1;
 
   // Global problem setup
@@ -382,7 +389,7 @@ int pic_fft(int argc, char* argv[]) {
     odiag.open("./diag.dat");
     // Write header
     odiag << "rank" << ' ' << "iter" << ' '
-          << "size" << ' '
+          << "size" << ' ' << "n_threads" <<  ' '
           << "ppc" << ' ' << "nt" << ' '
           << "t_loop" << ' '
           << "t_field_solve" << ' '
@@ -425,6 +432,7 @@ int pic_fft(int argc, char* argv[]) {
       for(int i=0; i<nt; ++i) {
         odiag << irank << ' '
               << i+1 << ' '<< size << ' '
+              << n_threads << ' '
               << ppc << ' ' << nt << ' '
               << t_loop.at(i) << ' '
               << t_field_solve.at(i) << ' '
