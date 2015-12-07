@@ -14,6 +14,11 @@ pic-fft: pic-fft.o $(OBJS)
 pic-fft.o : pic-fft.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -o $@ -c $<
 
+pic-fft-serial: pic-fft-serial.o $(OBJS)
+	$(CXX)  $(CXXFLAGS) -o $@ $^ $(LDLIBS)
+pic-fft-serial.o : pic-fft-serial.cpp $(DEPS)
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -o $@ -c $<
+
 test: test-solvers.o problem.o $(OBJS)
 	$(CXX)  $(CXXFLAGS) -o $@ $^ $(LDLIBS)
 problem.o: problem.hpp
